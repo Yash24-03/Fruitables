@@ -14,9 +14,18 @@ def home(request):
                'vegetables': vegetables, 'fruits': fruits}
     return render(request, 'index.html', context)
 
+def shop(request):
+    products = Product.objects.all()
+    context = {'products': products}
+    return render(request, 'shop.html', context)
 
 def cart(request):
-    return render(request, 'cart.html')
+    user = request.user
+    cartitems = CartItem.objects.filter(cart__user=user)
+    context = {'cartitems':cartitems}
+    return render(request, 'cart.html',context)
+
+
 
 
 def checkout(request):
@@ -38,10 +47,10 @@ def add_to_cart(request):
         cart, _ = Cart.objects.get_or_create(user=user)
 
         cart_item, created = CartItem.objects.get_or_create(
-            cart=cart, product=product, defaults={'quantity': product_qty})
+            cart=cart, product=product,total_price= product.price,defaults={'quantity': product_qty})
 
         if not created:
-            CartItem.objects.filter(id=cart_item.id).update(quantity=F('quantity') + product_qty)
+            CartItem.objects.filter(id=cart_item.id).update(quantity=F('quantity') + product_qty,total_price=F('total_price')+product.price)
 
         # Redirect to the cart page
         return redirect('home')
